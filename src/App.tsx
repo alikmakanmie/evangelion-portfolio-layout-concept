@@ -6,6 +6,7 @@ import {
   Briefcase, FileCode, Sliders 
 } from 'lucide-react';
 import { CONTACT_LOCATION, PROFESSIONAL_EXPERIENCE, CORE_SKILLS, TOOLS, EDUCATION } from './data';
+import profilePhoto from './assets/images/WhatsApp Image 2026-07-09 at 15.50.59.jpeg';
 
 // Custom Reveal on Scroll Component using IntersectionObserver
 function RevealOnScroll({ children }: { children: React.ReactNode }) {
@@ -366,7 +367,7 @@ export default function App() {
                   <div className="w-full aspect-square bg-gray-900 border border-gray-800 flex items-center justify-center relative rounded-md overflow-hidden">
                     <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-700 via-gray-900 to-black opacity-40" />
                     <img 
-                      src="/src/assets/images/WhatsApp Image 2026-07-09 at 15.50.59.jpeg" 
+                      src={profilePhoto} 
                       alt="Zalikha W Ramadhan"
                       className="w-full h-full object-cover"
                     />
