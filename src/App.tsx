@@ -1,0 +1,903 @@
+import React, { useState, useEffect, useRef } from 'react';
+import InteractivePoster from './components/InteractivePoster';
+import { 
+  Shield, Radio, Terminal, Cpu, Clock, MapPin, 
+  ChevronRight, Zap, Mail, Github, Linkedin, 
+  Briefcase, FileCode, Sliders 
+} from 'lucide-react';
+import { CONTACT_LOCATION, PROFESSIONAL_EXPERIENCE, CORE_SKILLS, TOOLS, EDUCATION } from './data';
+
+// Custom Reveal on Scroll Component using IntersectionObserver
+function RevealOnScroll({ children }: { children: React.ReactNode }) {
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.unobserve(entry.target);
+        }
+      },
+      { threshold: 0.05 }
+    );
+
+    const currentRef = ref.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) observer.unobserve(currentRef);
+    };
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className={`transition-all duration-1000 ease-out transform ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+      }`}
+    >
+      {children}
+    </div>
+  );
+}
+
+export default function App() {
+  const [parallaxStrength, setParallaxStrength] = useState<number>(1.2);
+  const [rotationSpeed, setRotationSpeed] = useState<number>(0.005);
+  const [themeColor, setThemeColor] = useState<'unit-00' | 'unit-01' | 'unit-02'>('unit-00');
+  const [isGridVisible, setIsGridVisible] = useState<boolean>(true);
+  const [isKanjiVisible, setIsKanjiVisible] = useState<boolean>(true);
+  const [activeHotspot, setActiveHotspot] = useState<string | null>(null);
+  const [selectedProject, setSelectedProject] = useState<typeof PROFESSIONAL_EXPERIENCE[0] | null>(PROFESSIONAL_EXPERIENCE[0]);
+
+  // Premium Features State
+  const [isAudioEnabled, setIsAudioEnabled] = useState<boolean>(false);
+  const [magiStatus, setMagiStatus] = useState<'IDLE' | 'PROCESSING' | 'APPROVED'>('IDLE');
+  const [magiVotes, setMagiVotes] = useState({ melchior: false, balthasar: false, casper: false });
+
+  const [currentTime, setCurrentTime] = useState<string>('');
+  const [scrollY, setScrollY] = useState<number>(0);
+
+  // Track window scroll coordinates for parallax scroll effects
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      setCurrentTime(now.toISOString().replace('T', ' ').slice(0, 19) + ' UTC');
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const units: Array<'unit-00' | 'unit-01' | 'unit-02'> = ['unit-00', 'unit-01', 'unit-02'];
+    const interval = setInterval(() => {
+      setThemeColor((current) => units[(units.indexOf(current) + 1) % units.length]);
+    }, 20000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const themes = {
+    'unit-00': {
+      bg: 'bg-[#0d0e12]',
+      border: 'border-gray-800',
+      borderMuted: 'border-[#2d2e38]',
+      accentText: 'text-[#e61a27]',
+      accentBg: 'bg-[#e61a27]',
+      accentBorder: 'border-[#e61a27]',
+      accentLightBg: 'bg-[#e61a27]/10',
+      accentLightBorder: 'border-[#e61a27]/30',
+      neonText: 'text-[#00f0ff]',
+      neonBg: 'bg-[#00f0ff]',
+      neonBorder: 'border-[#00f0ff]',
+      neonLightBg: 'bg-[#00f0ff]/10',
+      glowClass: 'shadow-[0_0_15px_rgba(230,26,39,0.3)]',
+      glowText: 'drop-shadow-[0_0_8px_rgba(230,26,39,0.6)]',
+      neonGlow: 'neon-glow-red',
+      neonTextGlow: 'neon-text-red',
+      neonBorderGlow: 'neon-border-red',
+      neonBgGlow: 'neon-bg-red',
+      neonPulse: 'neon-pulse-red'
+    },
+    'unit-01': {
+      bg: 'bg-[#0a0814]',
+      border: 'border-purple-950/40',
+      borderMuted: 'border-[#22173b]',
+      accentText: 'text-[#a73bf5]',
+      accentBg: 'bg-[#a73bf5]',
+      accentBorder: 'border-[#a73bf5]',
+      accentLightBg: 'bg-[#a73bf5]/10',
+      accentLightBorder: 'border-[#a73bf5]/30',
+      neonText: 'text-[#39ff14]',
+      neonBg: 'bg-[#39ff14]',
+      neonBorder: 'border-[#39ff14]',
+      neonLightBg: 'bg-[#39ff14]/10',
+      glowClass: 'shadow-[0_0_15px_rgba(167,59,245,0.3)]',
+      glowText: 'drop-shadow-[0_0_8px_rgba(167,59,245,0.6)]',
+      neonGlow: 'neon-glow-purple',
+      neonTextGlow: 'neon-text-purple',
+      neonBorderGlow: 'neon-border-purple',
+      neonBgGlow: '',
+      neonPulse: ''
+    },
+    'unit-02': {
+      bg: 'bg-[#100c08]',
+      border: 'border-orange-950/40',
+      borderMuted: 'border-[#3d1c07]',
+      accentText: 'text-[#ff4f00]',
+      accentBg: 'bg-[#ff4f00]',
+      accentBorder: 'border-[#ff4f00]',
+      accentLightBg: 'bg-[#ff4f00]/10',
+      accentLightBorder: 'border-[#ff4f00]/30',
+      neonText: 'text-[#ffcc00]',
+      neonBg: 'bg-[#ffcc00]',
+      neonBorder: 'border-[#ffcc00]',
+      neonLightBg: 'bg-[#ffcc00]/10',
+      glowClass: 'shadow-[0_0_15px_rgba(255,79,0,0.3)]',
+      glowText: 'drop-shadow-[0_0_8px_rgba(255,79,0,0.6)]',
+      neonGlow: 'neon-glow-orange',
+      neonTextGlow: 'neon-text-orange',
+      neonBorderGlow: 'neon-border-orange',
+      neonBgGlow: '',
+      neonPulse: ''
+    }
+  };
+
+  const activeTheme = themes[themeColor];
+
+  // Helper function to play sound beeps
+  const playBeep = (freq: number, duration: number) => {
+    if (!isAudioEnabled) return;
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (AudioCtx) {
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        gain.gain.setValueAtTime(0.05, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+      }
+    } catch (_) {}
+  };
+
+  const handleProjectSelect = (proj: typeof PROFESSIONAL_EXPERIENCE[0]) => {
+    setSelectedProject(proj);
+    playBeep(1200, 0.05);
+  };
+
+  // Trigger NERV MAGI Decision Engine consensus simulation
+  const triggerMagiConsensus = () => {
+    if (magiStatus === 'PROCESSING') return;
+    setMagiStatus('PROCESSING');
+    setMagiVotes({ melchior: false, balthasar: false, casper: false });
+    
+    playBeep(520, 0.2);
+
+    setTimeout(() => {
+      setMagiVotes(v => ({ ...v, melchior: true }));
+      playBeep(880, 0.05);
+    }, 800);
+
+    setTimeout(() => {
+      setMagiVotes(v => ({ ...v, balthasar: true }));
+      playBeep(880, 0.05);
+    }, 1600);
+
+    setTimeout(() => {
+      setMagiVotes(v => ({ ...v, casper: true }));
+      setMagiStatus('APPROVED');
+      playBeep(1040, 0.3);
+    }, 2400);
+  };
+
+  // Calculate opacity and scale of Hero section based on scroll
+  const heroOpacity = Math.max(1 - scrollY / (window.innerHeight || 800), 0);
+  const heroScale = 1 + scrollY * 0.0002;
+  const heroTranslateY = scrollY * 0.4;
+
+  return (
+    <main className={`min-h-screen w-full ${activeTheme.bg} text-gray-200 flex flex-col font-sans antialiased overflow-x-hidden transition-colors duration-500 selection:bg-[#e61a27] selection:text-white`}>
+      {/* BACKGROUND GRAPHIC GRADIENT AMBIENCE */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 opacity-25">
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-gradient-to-br from-red-950/40 via-transparent to-transparent filter blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-gradient-to-tl from-teal-950/30 via-transparent to-transparent filter blur-[120px]" />
+      </div>
+
+      {/* ============================================================== */}
+      {/* FIXED HEADER WITH SCROLL EFFECT                                */}
+      {/* ============================================================== */}
+      <header className={`fixed top-0 left-0 right-0 z-50 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all duration-300 p-4 md:px-8 ${
+        scrollY > 50 
+          ? 'bg-black/80 backdrop-blur-md border-b border-white/10 shadow-lg py-3' 
+          : 'bg-transparent border-b border-transparent py-5'
+      }`}>
+        <div className="flex items-start gap-3">
+          <div className={`relative w-11 h-11 ${activeTheme.accentBg} flex items-center justify-center transform rotate-30 shadow-md transition-colors duration-500`}>
+            <span className="text-white font-black text-xs transform -rotate-30 select-none">NERV</span>
+            <div className="absolute inset-0.5 border border-white/20" />
+          </div>
+          
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="font-display font-black text-xl md:text-2xl text-white tracking-tight leading-none glitch-hover cursor-pointer">
+                NERV PORTFOLIO SYSTEM
+              </h1>
+              <span className={`font-mono text-[9px] ${activeTheme.accentLightBg} ${activeTheme.accentText} border ${activeTheme.accentLightBorder} py-0.5 px-2 rounded uppercase tracking-widest animate-pulse hidden md:inline transition-colors duration-500`}>
+                SECURE_NODE_00
+              </span>
+            </div>
+            <p className="text-[10px] font-mono text-gray-400 mt-1 uppercase tracking-wide">
+              INTEGRATED SCI-FI PORTFOLIO HUB // CLASSIFIED PERSONNEL DATA
+            </p>
+          </div>
+        </div>
+
+        {/* System status metadata indicators */}
+        <div className="flex flex-wrap items-center gap-3 md:gap-4 font-mono text-[10px] bg-black/40 border border-gray-800 p-2 rounded-md">
+          {/* Audio HUD Toggle button */}
+          <button 
+            onClick={() => {
+              setIsAudioEnabled(!isAudioEnabled);
+              // Play a confirmation beep
+              if (!isAudioEnabled) {
+                try {
+                  const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+                  if (AudioCtx) {
+                    const ctx = new AudioCtx();
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.frequency.setValueAtTime(880, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.05, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.1);
+                  }
+                } catch (_) {}
+              }
+            }}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded border font-mono text-[8px] transition-all duration-300 hover:scale-105 active:scale-95 ${
+              isAudioEnabled 
+                ? 'border-[#00f0ff] bg-[#00f0ff]/10 text-[#00f0ff] shadow-[0_0_8px_rgba(0,240,255,0.2)]' 
+                : 'border-red-950/40 bg-red-950/10 text-red-500'
+            }`}
+          >
+            <Radio className={`w-3 h-3 ${isAudioEnabled ? 'animate-pulse' : ''}`} />
+            {isAudioEnabled ? 'AUDIO_HUD: ONLINE' : 'AUDIO_HUD: MUTED'}
+          </button>
+
+          <div className="h-4 w-[1px] bg-gray-850 hidden md:block" />
+
+          <div className="flex items-center gap-1.5 text-gray-400">
+            <Clock className={`w-3.5 h-3.5 ${activeTheme.neonText}`} />
+            <span>TIME:</span>
+            <span className="text-gray-200">{currentTime || 'SYNCING...'}</span>
+          </div>
+          
+          <div className="h-4 w-[1px] bg-gray-855 hidden md:block" />
+          
+          <a
+            href={CONTACT_LOCATION.mapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors"
+          >
+            <MapPin className={`w-3.5 h-3.5 ${activeTheme.accentText}`} />
+            <span>GEOLOCATION:</span>
+            <span className="text-gray-200">YOGYAKARTA, INDONESIA</span>
+          </a>
+
+          <div className="h-4 w-[1px] bg-gray-855 hidden md:block" />
+
+          <div className="flex items-center gap-1.5 text-emerald-400 neon-text-green">
+            <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+            <span>MAGI: ONLINE</span>
+          </div>
+        </div>
+      </header>
+
+      {/* ============================================================== */}
+      {/* SECTION 1: HERO CANVAS LANDING (Fixed/Sticky Parallax)         */}
+      {/* ============================================================== */}
+      <section 
+        className="fixed inset-0 z-0 pointer-events-auto transition-transform duration-75 ease-out"
+        style={{
+          opacity: heroOpacity,
+          transform: `translateY(${heroTranslateY}px) scale(${heroScale})`,
+          visibility: heroOpacity === 0 ? 'hidden' : 'visible'
+        }}
+      >
+        <InteractivePoster
+          parallaxStrength={parallaxStrength}
+          rotationSpeed={rotationSpeed}
+          themeColor={themeColor}
+          isGridVisible={isGridVisible}
+          isKanjiVisible={isKanjiVisible}
+          activeHotspot={activeHotspot}
+          setActiveHotspot={setActiveHotspot}
+          fullScreen={true}
+          isAudioEnabled={isAudioEnabled}
+        />
+      </section>
+
+      {/* Spacer to push content down so scroll works correctly */}
+      <div className="h-screen w-full pointer-events-none" />
+
+      {/* ============================================================== */}
+      {/* SCROLL CONTENT CONTAINER (Slides over Hero)                    */}
+      {/* ============================================================== */}
+      <div className={`w-full ${activeTheme.bg} border-t border-gray-800/80 shadow-[0_-20px_40px_rgba(0,0,0,0.8)] z-10 relative transition-colors duration-500`}>
+        <div className="w-full max-w-7xl mx-auto px-4 md:px-8 py-20 flex flex-col gap-28">
+          
+          {/* ============================================================== */}
+          {/* SECTION 2: PERSONNEL PROFILE                                   */}
+          {/* ============================================================== */}
+          <RevealOnScroll>
+            <section id="profile" className="flex flex-col gap-6 scroll-mt-24">
+              <div className="flex items-center gap-3 border-b border-gray-800 pb-3">
+                <Shield className={`w-6 h-6 ${activeTheme.accentText} neon-text-red`} />
+                <h2 className={`font-display font-black text-xl md:text-2xl text-white tracking-widest uppercase glitch-hover cursor-pointer ${activeTheme.neonText}`}>
+                  I. DATA PERSONEL // IDENTITY
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                {/* Left Photo/Status card with Sync Telemetry Wave */}
+                <div className={`lg:col-span-4 border border-gray-800 bg-black/20 p-5 rounded-lg flex flex-col items-center justify-center relative overflow-hidden ${activeTheme.neonGlow}`}>
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60 pointer-events-none z-10" />
+                  <div className="w-full aspect-square bg-gray-900 border border-gray-800 flex items-center justify-center relative rounded-md overflow-hidden">
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-700 via-gray-900 to-black opacity-40" />
+                    <img 
+                      src="/src/assets/images/WhatsApp Image 2026-07-09 at 15.50.59.jpeg" 
+                      alt="Zalikha W Ramadhan"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  
+                  {/* Real-time Bio-Telemetry SVG Wave */}
+                  <div className="w-full mt-4 bg-black/40 border border-gray-850 p-2.5 rounded relative overflow-hidden flex flex-col gap-1.5 z-20">
+                    <div className="flex justify-between items-center font-mono text-[8px] text-gray-500">
+                      <span>BIO-TELEMETRY // SYNC RATE</span>
+                      <span className={activeTheme.neonText}>62.4% MATCH</span>
+                    </div>
+                    <div className="h-8 w-full flex items-center justify-center relative overflow-hidden">
+                      <svg className={`w-full h-full ${activeTheme.neonText}`} viewBox="0 0 200 40" preserveAspectRatio="none">
+                        <defs>
+                          <linearGradient id="bio-grad" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0%" stopColor="currentColor" stopOpacity="0" />
+                            <stop offset="10%" stopColor="currentColor" stopOpacity="0.6" />
+                            <stop offset="90%" stopColor="currentColor" stopOpacity="0.6" />
+                            <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
+                          </linearGradient>
+                        </defs>
+                        <path
+                          d="M 0,30 Q 25,10 50,25 T 100,15 T 150,28 T 200,20"
+                          fill="none"
+                          stroke="url(#bio-grad)"
+                          strokeWidth="1.5"
+                          strokeDasharray="4 3"
+                          className="animate-pulse"
+                        />
+                        <path
+                          d="M 0,20 Q 25,30 50,18 T 100,25 T 150,12 T 200,20"
+                          fill="none"
+                          stroke="url(#bio-grad)"
+                          strokeWidth="1"
+                          strokeDasharray="2 4"
+                          opacity="0.4"
+                          className="animate-pulse"
+                          style={{ animationDelay: '0.5s', animationDuration: '3s' }}
+                        />
+                        <circle r="2" fill="currentColor" opacity="0.8">
+                          <animateTransform attributeName="transform" type="translate" dur="3s" repeatCount="indefinite" values="0,0;200,0;0,0" />
+                        </circle>
+                      </svg>
+                    </div>
+                  </div>
+
+                  <div className="w-full mt-3 text-center z-20">
+                    <div className="text-xs font-mono text-gray-500 uppercase tracking-widest">PERSONNEL STATUS</div>
+                    <div className="font-mono text-sm text-emerald-400 font-bold tracking-widest mt-1 neon-text-green">ACTIVE / SYNC 98.4%</div>
+                  </div>
+                </div>
+
+                {/* Right details card */}
+                <div className="lg:col-span-8 flex flex-col gap-4">
+                  <div className={`p-4 bg-black/30 border border-gray-800 rounded-lg ${activeTheme.neonGlow}`}>
+                    <div className="font-mono text-[9px] text-gray-500 mb-1">CODE_NAME:</div>
+                    <div className={`font-display font-black text-2xl md:text-3xl text-white tracking-wider glitch-hover cursor-pointer inline-block ${activeTheme.neonTextGlow}`}>
+                      ZALIKHA W RAMADHAN
+                    </div>
+                    <div className={`font-mono text-xs mt-1 ${activeTheme.accentText}`}>
+                      IT SUPPORT & WEB/APPLICATION DEVELOPER // RPL
+                    </div>
+                  </div>
+
+                  <div className={`p-4 bg-black/30 border border-gray-800 rounded-lg flex-1 ${activeTheme.neonGlow}`}>
+                    <div className="font-mono text-[9px] text-gray-500 mb-2">BIOGRAPHICAL_LOGS:</div>
+                    <p className="text-gray-300 text-sm leading-relaxed font-mono text-justify">
+                      Profesional IT berlatar Rekayasa Perangkat Lunak dengan fokus pada pengembangan web, backend API, kustomisasi sistem Linux/Android, dan IT Support. Berpengalaman membangun prototipe aplikasi Vocakey, menguji endpoint dengan Postman, serta mengelola deployment layanan secara terstruktur.
+                      <br /><br />
+                      Pencapaian utama mencakup Backend Developer Intern di Weclic, Web Developer di Mini Coding Academy, Freelance Video Creator untuk Kementerian Pendidikan, Vendor Lomba Expo 2024, dan perintisan layanan pengembangan web TanggapTech.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </RevealOnScroll>
+
+          {/* ============================================================== */}
+          {/* SECTION 3: CORE SKILLS & TOOLS                                 */}
+          {/* ============================================================== */}
+          <RevealOnScroll>
+            <section id="skills-tools" className="flex flex-col gap-6 scroll-mt-24">
+              <div className="flex items-center gap-3 border-b border-gray-800 pb-3">
+                <Cpu className={`w-6 h-6 ${activeTheme.accentText} ${activeTheme.neonTextGlow}`} />
+                <h2 className={`font-display font-black text-xl md:text-2xl text-white tracking-widest uppercase glitch-hover cursor-pointer ${activeTheme.neonTextGlow}`}>
+                  II. COMBAT SPECS // SKILLS & TOOLS
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Core Skills */}
+                <div className={`bg-black/20 border border-gray-800 p-5 rounded-lg flex flex-col gap-4 ${activeTheme.neonGlow}`}>
+                  <h3 className="font-display font-bold text-xs text-white uppercase tracking-widest flex items-center gap-2">
+                    <Terminal className={`w-4 h-4 ${activeTheme.neonText} ${activeTheme.neonTextGlow}`} />
+                    {CORE_SKILLS.title}
+                  </h3>
+                  <div className="flex flex-col gap-3">
+                    {CORE_SKILLS.items.map((skill) => (
+                      <div key={skill.name} className={`bg-black/40 border border-gray-900 p-3 rounded-md flex flex-col gap-2 ${activeTheme.neonBgGlow}`}>
+                        <div className="flex justify-between items-center text-[10px] font-mono text-gray-400">
+                          <span>{skill.name}</span>
+                          <span className={`${activeTheme.neonText} ${activeTheme.neonTextGlow}`}>{skill.level}%</span>
+                        </div>
+                        <div className="w-full bg-gray-900 h-1.5 rounded-full overflow-hidden">
+                          <div className={`h-full ${activeTheme.neonBg} transition-all duration-1000`} style={{ width: `${skill.level}%`, boxShadow: '0 0 8px rgba(0,240,255,0.4)' }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Tools */}
+                <div className={`bg-black/20 border border-gray-800 p-5 rounded-lg flex flex-col gap-4 ${activeTheme.neonGlow}`}>
+                  <h3 className="font-display font-bold text-xs text-white uppercase tracking-widest flex items-center gap-2">
+                    <Sliders className={`w-4 h-4 ${activeTheme.accentText} ${activeTheme.neonTextGlow}`} />
+                    {TOOLS.title}
+                  </h3>
+                  <div className="flex flex-col gap-3">
+                    {TOOLS.items.map((tool) => (
+                      <div key={tool.name} className={`bg-black/40 border border-gray-900 p-3 rounded-md flex flex-col gap-2 ${activeTheme.neonBgGlow}`}>
+                        <div className="flex justify-between items-center text-[10px] font-mono text-gray-400">
+                          <span>{tool.name}</span>
+                          <span className={`${activeTheme.neonText} ${activeTheme.neonTextGlow}`}>{tool.level}%</span>
+                        </div>
+                        <div className="w-full bg-gray-900 h-1.5 rounded-full overflow-hidden">
+                          <div className={`h-full ${activeTheme.accentBg} transition-all duration-1000`} style={{ width: `${tool.level}%`, boxShadow: '0 0 8px rgba(230,26,39,0.4)' }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </section>
+          </RevealOnScroll>
+
+          {/* ============================================================== */}
+          {/* SECTION 4: EDUCATION                                            */}
+          {/* ============================================================== */}
+          <RevealOnScroll>
+            <section id="education" className="flex flex-col gap-6 scroll-mt-24">
+              <div className="flex items-center gap-3 border-b border-gray-800 pb-3">
+                <FileCode className={`w-6 h-6 ${activeTheme.accentText} ${activeTheme.neonTextGlow}`} />
+                <h2 className={`font-display font-black text-xl md:text-2xl text-white tracking-widest uppercase glitch-hover cursor-pointer ${activeTheme.neonTextGlow}`}>
+                  III. ACADEMIC LOGS // EDUCATION
+                </h2>
+              </div>
+
+              {EDUCATION.items.map((edu) => (
+                <div key={edu.school} className={`bg-black/20 border border-gray-800 p-5 rounded-lg flex flex-col lg:flex-row gap-6 ${activeTheme.neonGlow}`}>
+                  <div className="lg:w-1/3 flex flex-col gap-2">
+                    <div className="font-mono text-[9px] text-[#00f0ff] tracking-widest uppercase neon-text-blue">INSTITUTION</div>
+                    <h4 className="font-display font-bold text-lg text-white">{edu.school}</h4>
+                    <div className="font-mono text-xs text-gray-400">{edu.major}</div>
+                    <div className="font-mono text-[10px] text-gray-500">{edu.period}</div>
+                  </div>
+                  <div className="lg:w-2/3 flex flex-col gap-2">
+                    <div className="font-mono text-[9px] text-gray-500 uppercase tracking-widest">ACHIEVEMENT_LOG:</div>
+                    <ul className="space-y-1.5">
+                      {edu.achievements.map((ach, i) => (
+                        <li key={i} className="flex items-start gap-2 text-xs text-gray-300 font-mono">
+                          <span className={`mt-0.5 w-1.5 h-1.5 rounded-full ${activeTheme.accentBg} flex-shrink-0`} />
+                          {ach}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              ))}
+            </section>
+          </RevealOnScroll>
+
+          {/* ============================================================== */}
+          {/* SECTION 5: PROFESSIONAL EXPERIENCE                              */}
+          {/* ============================================================== */}
+          <RevealOnScroll>
+            <section id="experience" className="flex flex-col gap-6 scroll-mt-24">
+              <div className="flex items-center gap-3 border-b border-gray-800 pb-3">
+                <Briefcase className={`w-6 h-6 ${activeTheme.accentText} ${activeTheme.neonTextGlow}`} />
+                <h2 className={`font-display font-black text-xl md:text-2xl text-white tracking-widest uppercase glitch-hover cursor-pointer ${activeTheme.neonTextGlow}`}>
+                  IV. TACTICAL OPERATIONS // EXPERIENCE
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div className="lg:col-span-5 flex flex-col gap-2">
+                  <span className="font-mono text-[10px] text-gray-500 block mb-1">SELECT_MISSION_FILE:</span>
+                  {PROFESSIONAL_EXPERIENCE.map((exp) => {
+                    const isSelected = selectedProject?.id === exp.id;
+                    return (
+                      <button
+                        key={exp.id}
+                        onClick={() => handleProjectSelect(exp)}
+                        className={`w-full text-left p-3 rounded-lg border transition-all flex items-center justify-between ${
+                           isSelected
+                            ? `${activeTheme.accentLightBg} ${activeTheme.accentBorder} ${activeTheme.glowClass} ${activeTheme.neonGlow}`
+                            : 'bg-black/20 border-gray-800 hover:border-gray-700 hover:neon-glow-blue'
+                        }`}
+                      >
+                        <div className="truncate">
+                          <div className="flex items-center gap-2">
+                            <span className={`w-1.5 h-1.5 rounded-full ${
+                              exp.status === 'ACTIVE' 
+                                ? 'bg-emerald-500 animate-pulse' 
+                                : exp.status === 'DEVELOPMENT' 
+                                  ? 'bg-yellow-500' 
+                                  : 'bg-gray-600'
+                            }`} />
+                            <span className="font-mono text-[9px] text-gray-500">{exp.code}</span>
+                          </div>
+                          <div className="font-display font-bold text-white text-xs md:text-sm truncate mt-1">{exp.title}</div>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                      </button>
+                    );
+                  })}
+                </div>
+
+                  <div className={`lg:col-span-7 bg-black/40 border border-gray-800 p-5 rounded-lg flex flex-col justify-between ${activeTheme.neonGlow}`}>
+                  {selectedProject ? (
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-start border-b border-gray-800 pb-3">
+                        <div>
+                          <div className="font-mono text-[9px] text-[#00f0ff] tracking-widest uppercase">
+                            ■ FILE_ID: {selectedProject.code}
+                          </div>
+                          <h4 className="font-display font-bold text-lg text-white uppercase mt-1">
+                            {selectedProject.title}
+                          </h4>
+                        </div>
+                        <span className="font-mono text-[10px] bg-gray-800 text-gray-300 px-2 py-0.5 rounded border border-gray-700 uppercase">
+                          {selectedProject.category}
+                        </span>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <span className="font-mono text-[9px] text-gray-500 block">TACTICAL_DESCRIPTION:</span>
+                        <p className="text-gray-300 text-xs leading-relaxed font-mono">
+                          {selectedProject.description}
+                        </p>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <span className="font-mono text-[9px] text-gray-500 block">SYSTEM_COMPATIBILITY:</span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {selectedProject.technologies.map((tech) => (
+                            <span key={tech} className="font-mono text-[9px] bg-black/60 text-gray-400 py-0.5 px-2.5 rounded border border-gray-800">
+                              {tech}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      
+
+                      <div className="flex items-center justify-between border-t border-gray-850 pt-3 mt-4 text-[9px] font-mono text-gray-500">
+                        <div>DATE: {selectedProject.date}</div>
+                        <div className="flex items-center gap-1 text-emerald-400">
+                          <span className="w-1 h-1 bg-emerald-450 rounded-full animate-ping"></span>
+                          INTEGRITY_VERIFIED
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="h-full flex items-center justify-center text-gray-500 text-xs font-mono">
+                      SELECT A TACTICAL FILE TO VIEW SPECIFICATIONS
+                    </div>
+                  )}
+                </div>
+              </div>
+            </section>
+          </RevealOnScroll>
+
+          {/* ============================================================== */}
+          {/* SECTION 4: TECHNICAL SPECIFICATIONS (SKILLS & CONTROLS)        */}
+          {/* ============================================================== */}
+          <RevealOnScroll>
+            <section id="skills" className="flex flex-col gap-6 scroll-mt-24">
+              <div className="flex items-center gap-3 border-b border-gray-800 pb-3">
+                <Cpu className={`w-6 h-6 ${activeTheme.accentText} ${activeTheme.neonTextGlow}`} />
+                <h2 className={`font-display font-black text-xl md:text-2xl text-white tracking-widest uppercase glitch-hover cursor-pointer ${activeTheme.neonTextGlow}`}>
+                  V. SYNCHRONISATION SPECS // CALIBRATION
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                {/* Live Calibration Controls */}
+                <div className={`lg:col-span-12 bg-black/20 border border-gray-800 p-5 rounded-lg flex flex-col gap-4 justify-between ${activeTheme.neonGlow}`}>
+                  <h3 className="font-display font-bold text-xs text-white uppercase tracking-widest flex items-center gap-2">
+                    <Sliders className={`w-4 h-4 ${activeTheme.accentText} ${activeTheme.neonTextGlow}`} />
+                    SYSTEM_CALIBRATION_PANEL
+                  </h3>
+
+                  <div className="flex flex-col gap-4 flex-1 justify-center">
+                    {/* Parallax Strength Slider */}
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between font-mono text-[10px] text-gray-400">
+                        <span>PARALLAX_STRENGTH:</span>
+                        <span className={activeTheme.neonText}>{parallaxStrength.toFixed(1)}x</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="2.5"
+                        step="0.1"
+                        value={parallaxStrength}
+                        onChange={(e) => setParallaxStrength(parseFloat(e.target.value))}
+                        className="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-[#e61a27]"
+                      />
+                    </div>
+
+                    {/* Globe Rotation Slider */}
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between font-mono text-[10px] text-gray-400">
+                        <span>3D_GLOBE_ROTATION:</span>
+                        <span className={activeTheme.neonText}>{rotationSpeed === 0 ? 'PAUSED' : `${(rotationSpeed * 1000).toFixed(1)} rad/s`}</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="0.02"
+                        step="0.001"
+                        value={rotationSpeed}
+                        onChange={(e) => setRotationSpeed(parseFloat(e.target.value))}
+                        className="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-[#00f0ff]"
+                      />
+                    </div>
+
+                    {/* Theme Selection */}
+                    <div className="space-y-2">
+                      <span className="font-mono text-[10px] text-gray-400 block">CALIBRATE_INTERFACE_THEME (EVA UNIT):</span>
+                      <div className="grid grid-cols-3 gap-2">
+                        <button
+                          onClick={() => {
+                            setThemeColor('unit-00');
+                            playBeep(520, 0.1);
+                          }}
+                          className={`py-1.5 px-1 text-[9px] font-mono border rounded uppercase transition-all ${
+                            themeColor === 'unit-00'
+                              ? 'border-[#e61a27] bg-[#e61a27]/15 text-white shadow-[0_0_10px_rgba(230,26,39,0.3)]'
+                              : 'border-gray-855 text-gray-500 hover:text-white hover:border-gray-700'
+                          }`}
+                        >
+                          Unit-00 (Rei Red)
+                        </button>
+                        <button
+                          onClick={() => {
+                            setThemeColor('unit-01');
+                            playBeep(640, 0.1);
+                          }}
+                          className={`py-1.5 px-1 text-[9px] font-mono border rounded uppercase transition-all ${
+                            themeColor === 'unit-01'
+                              ? 'border-[#a73bf5] bg-[#a73bf5]/15 text-white shadow-[0_0_10px_rgba(167,59,245,0.3)]'
+                              : 'border-gray-855 text-gray-500 hover:text-white hover:border-gray-700'
+                          }`}
+                        >
+                          Unit-01 (Shinji Purple)
+                        </button>
+                        <button
+                          onClick={() => {
+                            setThemeColor('unit-02');
+                            playBeep(780, 0.1);
+                          }}
+                          className={`py-1.5 px-1 text-[9px] font-mono border rounded uppercase transition-all ${
+                            themeColor === 'unit-02'
+                              ? 'border-[#ff4f00] bg-[#ff4f00]/15 text-white shadow-[0_0_10px_rgba(255,79,0,0.3)]'
+                              : 'border-gray-855 text-gray-500 hover:text-white hover:border-gray-700'
+                          }`}
+                        >
+                          Unit-02 (Asuka Orange)
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </RevealOnScroll>
+
+          {/* ============================================================== */}
+          {/* SECTION 5: SECURE COMMS LINK (CONTACT & MAGI CONSENSUS)        */}
+          {/* ============================================================== */}
+          <RevealOnScroll>
+            <section id="contact" className="flex flex-col gap-6 scroll-mt-24">
+              <div className="flex items-center gap-3 border-b border-gray-800 pb-3">
+                <Radio className={`w-6 h-6 ${activeTheme.accentText} ${activeTheme.neonTextGlow}`} />
+                <h2 className={`font-display font-black text-xl md:text-2xl text-white tracking-widest uppercase glitch-hover cursor-pointer ${activeTheme.neonTextGlow}`}>
+                  VI. SECURE COMMS LINK // CONTACT
+                </h2>
+              </div>
+
+              <div className={`p-8 bg-black/20 border border-gray-855 rounded-lg flex flex-col items-center justify-center text-center gap-6 ${activeTheme.neonGlow}`}>
+                <div className="space-y-1">
+                  <h3 className={`font-display font-black text-xl text-white tracking-widest uppercase glitch-hover cursor-pointer inline-block ${activeTheme.neonTextGlow}`}>
+                    ESTABLISH ENCRYPTED INBOUND FREQUENCY
+                  </h3>
+                  <p className="font-mono text-xs text-gray-500">
+                    Pilih protokol untuk mengirimkan laporan taktis atau klik tombol enkripsi untuk verifikasi MAGI.
+                  </p>
+                </div>
+
+                {/* MAGI CONSENSUS SIMULATOR */}
+                <div className={`w-full max-w-xl bg-black/50 border border-gray-850 p-4 rounded-lg flex flex-col gap-4 mt-2 ${activeTheme.neonGlow}`}>
+                  <div className="flex justify-between items-center font-mono text-[9px] text-gray-400 border-b border-gray-850 pb-2">
+                    <span>TRI-MAGI DECISION CONSENSUS (V4.1)</span>
+                    <span className={`${activeTheme.neonText} ${activeTheme.neonTextGlow}`}>Consensus Status: {magiStatus}</span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className={`p-3 border rounded text-center transition-all ${
+                      magiVotes.melchior ? 'border-emerald-500 bg-emerald-950/20 text-emerald-400' : 'border-gray-850 bg-black/40 text-gray-600'
+                    }`}>
+                      <div className="text-[8px] font-mono">MELCHIOR-1</div>
+                      <div className="font-display font-bold text-xs mt-1.5">{magiVotes.melchior ? 'AGREED' : 'RESOLVING...'}</div>
+                    </div>
+                    <div className={`p-3 border rounded text-center transition-all ${
+                      magiVotes.balthasar ? 'border-emerald-500 bg-emerald-950/20 text-emerald-400' : 'border-gray-850 bg-black/40 text-gray-600'
+                    }`}>
+                      <div className="text-[8px] font-mono">BALTHASAR-2</div>
+                      <div className="font-display font-bold text-xs mt-1.5">{magiVotes.balthasar ? 'AGREED' : 'RESOLVING...'}</div>
+                    </div>
+                    <div className={`p-3 border rounded text-center transition-all ${
+                      magiVotes.casper ? 'border-emerald-500 bg-emerald-950/20 text-emerald-400' : 'border-gray-850 bg-black/40 text-gray-600'
+                    }`}>
+                      <div className="text-[8px] font-mono">CASPER-3</div>
+                      <div className="font-display font-bold text-xs mt-1.5">{magiVotes.casper ? 'AGREED' : 'RESOLVING...'}</div>
+                    </div>
+                  </div>
+
+                  {magiStatus !== 'APPROVED' ? (
+                    <button 
+                      onClick={triggerMagiConsensus}
+                      disabled={magiStatus === 'PROCESSING'}
+                      className={`w-full font-mono text-[10px] tracking-widest border py-2.5 rounded font-bold uppercase transition-all duration-300 neon-glow-blue ${
+                        magiStatus === 'PROCESSING' 
+                          ? 'border-gray-700 text-gray-500 bg-gray-950/50 cursor-not-allowed' 
+                          : `${activeTheme.accentBorder} ${activeTheme.accentText} ${activeTheme.accentLightBg} hover:scale-103 active:scale-97 cursor-pointer`
+                      }`}
+                    >
+                      {magiStatus === 'PROCESSING' ? 'ANALYZING CONSENSUS MATRIX...' : 'START HIRE PROTOCOL VERIFICATION'}
+                    </button>
+                  ) : (
+                    <div className="w-full bg-emerald-950/20 border border-emerald-500/30 text-emerald-450 py-2.5 rounded font-mono text-[10px] font-bold tracking-widest text-center animate-pulse neon-text-green">
+                      CONSENSUS COMPLETED // ACCESS TO CHANNELS DECRYPTED
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full max-w-3xl mt-4">
+                  <a href="mailto:zaelikha@gmail.com" className="flex flex-col items-center justify-center p-5 bg-black/40 border border-gray-855 hover:border-[#e61a27] hover:neon-glow-red rounded-lg transition-all group" onClick={() => playBeep(880, 0.05)}>
+                    <Mail className="w-8 h-8 text-gray-500 group-hover:text-[#e61a27] mb-3 transition-colors duration-300 group-hover:neon-text-red" />
+                    <span className="font-display font-bold text-xs text-white tracking-wider">EMAIL PROTOCOL</span>
+                    <span className="font-mono text-[8px] text-gray-500 mt-1">DIRECT TRANSMISSION</span>
+                  </a>
+
+                  <a href="https://github.com/alikmakanmie" target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-center p-5 bg-black/40 border border-gray-855 hover:border-[#a73bf5] hover:neon-glow-purple rounded-lg transition-all group" onClick={() => playBeep(880, 0.05)}>
+                    <Github className="w-8 h-8 text-gray-500 group-hover:text-[#a73bf5] mb-3 transition-colors duration-300 group-hover:neon-text-purple" />
+                    <span className="font-display font-bold text-xs text-white tracking-wider">GITHUB ENCLAVE</span>
+                    <span className="font-mono text-[8px] text-gray-500 mt-1">SOURCE ARCHIVES</span>
+                  </a>
+
+                  <a href="https://wa.me/6285767708773" target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-center p-5 bg-black/40 border border-gray-855 hover:border-[#00f0ff] hover:neon-glow-blue rounded-lg transition-all group" onClick={() => playBeep(880, 0.05)}>
+                    <Radio className="w-8 h-8 text-gray-500 group-hover:text-[#00f0ff] mb-3 transition-colors duration-300 group-hover:neon-text-blue" />
+                    <span className="font-display font-bold text-xs text-white tracking-wider">WHATSAPP</span>
+                    <span className="font-mono text-[8px] text-gray-500 mt-1">INSTANT_MESSAGE</span>
+                  </a>
+
+                  <a href="https://instagram.com/miemakanalik" target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-center p-5 bg-black/40 border border-gray-855 hover:border-[#e61a27] hover:neon-glow-red rounded-lg transition-all group" onClick={() => playBeep(880, 0.05)}>
+                    <svg className="w-8 h-8 text-gray-500 group-hover:text-[#e61a27] mb-3 transition-colors duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+                    </svg>
+                    <span className="font-display font-bold text-xs text-white tracking-wider">INSTAGRAM</span>
+                    <span className="font-mono text-[8px] text-gray-500 mt-1">@miemakanalik</span>
+                  </a>
+                </div>
+
+                <div className="w-full max-w-3xl bg-black/40 border border-gray-850 rounded-lg overflow-hidden neon-glow-blue">
+                  <div className="flex items-center justify-between gap-3 border-b border-gray-850 px-4 py-3 text-[9px] font-mono text-gray-500 uppercase tracking-widest">
+                    <div className="flex items-center gap-2 text-gray-300">
+                      <MapPin className={`w-3.5 h-3.5 ${activeTheme.accentText}`} />
+                      <span>MINI MAP</span>
+                    </div>
+                    <a
+                      href={CONTACT_LOCATION.mapsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#00f0ff] hover:text-white transition-colors"
+                    >
+                      BUKA_LOKASI
+                    </a>
+                  </div>
+                  <iframe
+                    title="Mini map lokasi"
+                    src={CONTACT_LOCATION.mapsEmbedUrl}
+                    loading="lazy"
+                    className="h-56 w-full border-0 grayscale-[0.15] contrast-110"
+                  />
+                  <div className="px-4 py-3 border-t border-gray-850 text-left">
+                    <div className="font-mono text-[9px] text-gray-500 uppercase tracking-widest">ADDRESS_FILE:</div>
+                    <p className="mt-1 text-xs text-gray-300 font-mono leading-relaxed">
+                      {CONTACT_LOCATION.address}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <div className="inline-block px-4 py-2 bg-red-950/20 border border-red-900/40 rounded font-mono text-[10px] text-red-400 neon-glow-red neon-text-red">
+                    <span className="animate-pulse mr-2">●</span> SECURITY LEVEL A-11 TRANSMISSION DECRYPTOR ONLINE
+                  </div>
+                </div>
+              </div>
+            </section>
+          </RevealOnScroll>
+
+        </div>
+
+        {/* ============================================================== */}
+        {/* TACTICAL FOOTER                                                */}
+        {/* ============================================================== */}
+        <footer className="w-full border-t border-gray-850 bg-black/40 py-8 px-4 md:px-8 mt-10">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 font-mono text-[9px] text-gray-600 uppercase tracking-widest">
+            <div>
+              © NERV PROJECT INSTRUMENTALIZATION OF WEB DESIGN. ALL RIGHTS RESERVED.
+            </div>
+            <div>
+              SECURED BY MAGI-00 // PORTFOLIO NODE INDEX
+            </div>
+          </div>
+        </footer>
+      </div>
+    </main>
+  );
+}

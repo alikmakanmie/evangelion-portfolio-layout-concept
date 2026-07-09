@@ -1,0 +1,511 @@
+import React, { useState, useRef } from 'react';
+import { ASSET_LIST } from '../data';
+import WireframeGlobe from './WireframeGlobe';
+import { AlertTriangle, Layers, Info } from 'lucide-react';
+
+// Use exact paths of the generated assets
+import centralReiImg from '../assets/images/rei_ayanami_central_1783557740359.jpg';
+import profileReiImg from '../assets/images/rei_ayanami_profile_1783557756644.jpg';
+import reiImg from '../assets/images/Rei Ayanami.png';
+import shinjiImg from '../assets/images/Ikari Shinji.png';
+import asukaImg from '../assets/images/Ashuka Langley.png';
+
+interface InteractivePosterProps {
+  parallaxStrength: number;
+  rotationSpeed: number;
+  activeHotspot: string | null;
+  setActiveHotspot: (id: string | null) => void;
+  themeColor: 'unit-00' | 'unit-01' | 'unit-02';
+  isGridVisible: boolean;
+  isKanjiVisible: boolean;
+  fullScreen?: boolean;
+  isAudioEnabled: boolean;
+}
+
+export default function InteractivePoster({
+  parallaxStrength,
+  rotationSpeed,
+  activeHotspot,
+  setActiveHotspot,
+  themeColor,
+  isGridVisible,
+  isKanjiVisible,
+  fullScreen = false,
+  isAudioEnabled,
+}: InteractivePosterProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [hoveredAsset, setHoveredAsset] = useState<string | null>(null);
+
+  // Track mouse coordinates over the container
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const rect = container.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5; // range -0.5 to 0.5
+    const y = (e.clientY - rect.top) / rect.height - 0.5; // range -0.5 to 0.5
+    setMousePos({ x, y });
+  };
+
+  const handleMouseLeave = () => {
+    // Return smoothly to center when mouse leaves
+    setMousePos({ x: 0, y: 0 });
+  };
+
+  // Web Audio API beep sound for NERV-style tactical alerts
+  const playTacticalSound = (freq = 880, duration = 0.08) => {
+    if (!isAudioEnabled) return;
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      gain.gain.setValueAtTime(0.1, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start();
+      osc.stop(ctx.currentTime + duration);
+    } catch (err) {
+      // Audio context block browser guard
+    }
+  };
+
+  // Color theme definition based on Evangelion units
+  const themes = {
+    'unit-00': {
+      bg: 'bg-[#0d0e12]',
+      accent: '#e61a27', // Rei Red
+      accentLight: 'rgba(230, 26, 39, 0.2)',
+      neon: '#00f0ff', // Teal HUD
+      neonText: 'text-[#00f0ff]',
+      neonBg: 'bg-[#00f0ff]',
+      neonBorder: 'border-[#00f0ff]',
+      glowClass: 'glow-blue',
+      textGlowClass: 'text-glow-blue',
+    },
+    'unit-01': {
+      bg: 'bg-[#0a0814]',
+      accent: '#a73bf5', // Purple
+      accentLight: 'rgba(167, 59, 245, 0.2)',
+      neon: '#39ff14', // Acid Green
+      neonText: 'text-[#39ff14]',
+      neonBg: 'bg-[#39ff14]',
+      neonBorder: 'border-[#39ff14]',
+      glowClass: 'glow-red', // Reuse glow mapping
+      textGlowClass: 'text-glow-red',
+    },
+    'unit-02': {
+      bg: 'bg-[#100c08]',
+      accent: '#ff4f00', // Orange-Red
+      accentLight: 'rgba(255, 79, 0, 0.2)',
+      neon: '#ffcc00', // Yellow
+      neonText: 'text-[#ffcc00]',
+      neonBg: 'bg-[#ffcc00]',
+      neonBorder: 'border-[#ffcc00]',
+      glowClass: 'glow-blue',
+      textGlowClass: 'text-glow-blue',
+    }
+  };
+
+  const activeTheme = themes[themeColor];
+  const character = {
+    'unit-00': { name: 'REI AYANAMI', jp: '綾波レイ', role: 'FIRST_CHILD', unit: '00', image: reiImg, profile: profileReiImg },
+    'unit-01': { name: 'SHINJI IKARI', jp: '碇シンジ', role: 'THIRD_CHILD', unit: '01', image: shinjiImg, profile: shinjiImg },
+    'unit-02': { name: 'ASUKA LANGLEY', jp: '惣流アスカ', role: 'SECOND_CHILD', unit: '02', image: asukaImg, profile: asukaImg },
+  }[themeColor];
+
+  // Helper calculation for translate offset
+  const getTransform = (factor: number) => {
+    const tx = mousePos.x * factor * parallaxStrength * 40;
+    const ty = mousePos.y * factor * parallaxStrength * 40;
+    return `translate3d(${tx}px, ${ty}px, 0)`;
+  };
+
+  const onHotspotClick = (id: string) => {
+    playTacticalSound(660, 0.12);
+    setActiveHotspot(id === activeHotspot ? null : id);
+  };
+
+  return (
+    <div className={`flex flex-col w-full ${fullScreen ? 'h-screen' : 'h-full'}`}>
+      {/* Title block - Only show if NOT fullScreen */}
+      {!fullScreen && (
+        <div className="flex items-center justify-between mb-2 px-1 border-b border-[#2d2e38] pb-2">
+          <div className="flex items-center gap-2">
+            <Layers className={`w-5 h-5 ${activeTheme.neonText}`} />
+            <span className="font-display font-bold tracking-tight text-sm uppercase">
+              Kanvas Interaktif Poster EVA-00
+            </span>
+          </div>
+          <div className="flex items-center gap-2 font-mono text-[10px] text-gray-500">
+            <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            ACTIVE_PARALLAX_RENDERER
+          </div>
+        </div>
+      )}
+
+      {/* Main Poster Container */}
+      <div
+        id="interactive-poster-canvas"
+        ref={containerRef}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        className={`relative flex-1 ${fullScreen ? 'rounded-none border-none' : 'rounded-lg border border-[#2d2e38]'} overflow-hidden ${activeTheme.bg} transition-all duration-500 cursor-crosshair select-none flex items-center justify-center`}
+        style={{ minHeight: fullScreen ? '100vh' : '450px' }}
+      >
+        {/* ========================================== */}
+        {/* LAYER 1: Technical Mesh & Grid (Background) */}
+        {/* ========================================== */}
+        <div
+          className="absolute inset-0 transition-transform duration-300 ease-out pointer-events-none"
+          style={{ transform: getTransform(0.15) }}
+        >
+          {/* Grid Overlay */}
+          {isGridVisible && (
+            <div className="absolute inset-0 opacity-15" 
+                 style={{ 
+                   backgroundImage: `radial-gradient(${activeTheme.neon} 1.5px, transparent 1.5px), linear-gradient(to right, rgba(45,46,56,0.2) 1px, transparent 1px), linear-gradient(to bottom, rgba(45,46,56,0.2) 1px, transparent 1px)`,
+                   backgroundSize: '24px 24px, 48px 48px, 48px 48px'
+                 }} 
+            />
+          )}
+
+          {/* Canvas-based Rotating Wireframe Globe */}
+          <div className="absolute right-[40%] top-[15%] w-72 h-72 rounded-full overflow-hidden opacity-30">
+            <WireframeGlobe 
+              rotationSpeed={rotationSpeed} 
+              color={activeTheme.neon} 
+              glowColor={`${activeTheme.neon}66`}
+            />
+          </div>
+
+          {/* Target Reticle Crosshair */}
+          <div className="absolute left-[35%] top-[25%] w-48 h-48 border border-dashed border-gray-800 rounded-full flex items-center justify-center pointer-events-none opacity-40">
+            <div className="w-24 h-24 border border-dashed border-gray-700 rounded-full" />
+            <div className="absolute w-[120%] h-[1px] bg-gray-800" />
+            <div className="absolute h-[120%] w-[1px] bg-gray-800" />
+          </div>
+        </div>
+
+        {/* ========================================== */}
+        {/* LAYER 2: Big "00" & Kanji (Mid-Background) */}
+        {/* ========================================== */}
+        <div
+          className="absolute inset-0 transition-transform duration-300 ease-out pointer-events-none"
+          style={{ transform: getTransform(0.3) }}
+        >
+          {/* Big "00" Decal */}
+          <div 
+            className="absolute left-6 top-6 text-[110px] md:text-[140px] font-display font-bold leading-none select-none select-none opacity-20 pointer-events-none transition-all"
+            style={{
+              color: 'transparent',
+              WebkitTextStroke: `2px ${themeColor === 'unit-00' ? '#e61a27' : activeTheme.neon}`,
+            }}
+          >
+            00
+          </div>
+
+          {/* Japanese Kanji Label: 警告 (Warning) at Bottom Left */}
+          {isKanjiVisible && (
+            <div className="absolute left-6 bottom-6 flex flex-col gap-1 items-start pointer-events-none">
+              <div className="bg-[#e61a27] text-white font-jp text-[10px] tracking-widest font-black px-2 py-0.5 rounded animate-pulse shadow-md flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3 text-white" />
+                警告_WARNING
+              </div>
+              <div className="text-[9px] font-mono text-[#e61a27] opacity-60">
+                SYSTEM CORRUPTION DETECTED
+              </div>
+            </div>
+          )}
+
+          {/* Japanese Kanji Label: 警告 (Warning) at Top Right */}
+          {isKanjiVisible && (
+            <div className="absolute right-6 top-6 flex flex-col gap-1 items-end pointer-events-none">
+              <div className="bg-[#e61a27] text-white font-jp text-[10px] tracking-widest font-black px-2 py-0.5 rounded shadow-md">
+                警告_KEIKOKU
+              </div>
+              <div className="text-[8px] font-mono text-gray-500">
+                XX_SECURE_NODE_XX
+              </div>
+            </div>
+          )}
+
+          {/* Chinese text "垃圾广告" (Spam Advertisement) */}
+          {isKanjiVisible && (
+            <div className="absolute left-8 bottom-24 bg-black/60 border border-gray-800 text-[10px] font-mono text-gray-500 py-1 px-2 transform -rotate-12 backdrop-blur-sm shadow-lg pointer-events-none flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-ping"></span>
+              垃圾广告_SPAM
+            </div>
+          )}
+
+          {/* Brush handwriting: 新龍 (New Dragon) */}
+          {isKanjiVisible && (
+            <div className="absolute left-[38%] top-[30%] text-white opacity-10 font-jp font-black text-6xl tracking-tighter select-none pointer-events-none writing-mode-vertical text-center transform -rotate-6">
+              新龍
+            </div>
+          )}
+        </div>
+
+        {/* ========================================== */}
+        {/* LAYER 3: Isolated Central Rei (Foreground 1) */}
+        {/* ========================================== */}
+        <div
+          className={`absolute w-full h-full flex items-center justify-center transition-transform duration-300 ease-out z-10`}
+          style={{ transform: getTransform(0.6) }}
+        >
+          {/* Main Portrait frame */}
+          <div className="relative w-72 h-[340px] md:w-80 md:h-[380px] flex items-center justify-center">
+            
+            {/* Ambient Background Glow for Rei */}
+            <div className="absolute inset-0 bg-radial from-black/50 to-transparent pointer-events-none" />
+            
+            <img
+              src={themeColor === 'unit-00' ? centralReiImg : character.image}
+              alt={character.name}
+              referrerPolicy="no-referrer"
+              className={`w-auto h-[90%] object-contain select-none transition-all duration-300 pointer-events-none ${
+                hoveredAsset === 'central-rei' || activeHotspot === 'central-rei'
+                  ? 'brightness-110 filter drop-shadow-[0_0_20px_rgba(0,240,255,0.4)]'
+                  : 'brightness-90 filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]'
+              }`}
+              style={{
+                // Beautiful gradient mask to naturally blend the black background & isolate the silhouette
+                maskImage: 'radial-gradient(ellipse at center, black 68%, transparent 96%)',
+                WebkitMaskImage: 'radial-gradient(ellipse at center, black 68%, transparent 96%)',
+              }}
+            />
+
+            {/* Glowing Scanlines overlay on portrait */}
+            <div 
+              className="absolute inset-0 pointer-events-none opacity-20"
+              style={{
+                backgroundImage: 'linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%)',
+                backgroundSize: '100% 4px',
+              }}
+            />
+          </div>
+        </div>
+
+        {/* ========================================== */}
+        {/* LAYER 4: Profile Rei & Torn Paper (Kanan) */}
+        {/* ========================================== */}
+        <div
+          className="absolute inset-0 transition-transform duration-300 ease-out z-20 pointer-events-none"
+          style={{ transform: getTransform(0.4) }}
+        >
+          {/* Torn Paper Profile Silhouette on Right Side */}
+          <div className="absolute right-4 top-[20%] w-36 h-[260px] md:w-44 md:h-[300px] flex items-center justify-center">
+            {/* Backing paper border shadow */}
+            <div className="absolute inset-0 bg-[#e61a27]/30 torn-paper transform translate-x-1 translate-y-1" />
+            
+            <div className="absolute inset-0 bg-[#2d2e38] torn-paper overflow-hidden">
+              <img
+                src={character.profile}
+                alt={`${character.name} Profile`}
+                referrerPolicy="no-referrer"
+                className="w-full h-full object-cover grayscale brightness-90 mix-blend-lighten opacity-80"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+              
+              {/* Micro telemetry on torn paper */}
+              <div className="absolute left-2 bottom-2 font-mono text-[8px] text-gray-400">
+                EVA_UNIT_{character.unit}_SYNC: 62.4%
+              </div>
+            </div>
+            
+            {/* Torn paper overlay border */}
+            <div className="absolute inset-0 border border-white/10 torn-paper pointer-events-none" />
+          </div>
+
+          {/* Stencil Text labels under right portrait */}
+          <div className="absolute right-4 bottom-20 flex flex-col items-end">
+            <div className="text-white font-display font-bold text-lg tracking-wider bg-black/60 px-1 border-r-2 border-[#e61a27]">
+              {character.name}
+            </div>
+            <div className={`text-[9px] font-mono ${activeTheme.neonText} tracking-widest`}>
+              {character.jp}_{character.role}
+            </div>
+          </div>
+
+          {/* Traditional Brush "新龍" on the right side */}
+          {isKanjiVisible && (
+            <div className="absolute right-28 top-[55%] text-white/15 font-jp font-black text-5xl select-none pointer-events-none transform rotate-12">
+              新龍
+            </div>
+          )}
+
+          {/* Small NERV Leaf Logo in bottom right corner */}
+          <div className="absolute right-6 bottom-6 w-10 h-10 opacity-30 flex items-center justify-center bg-black/40 rounded-sm border border-gray-800 backdrop-blur-sm">
+            <svg viewBox="0 0 100 100" className="w-6 h-6 fill-[#e61a27]">
+              {/* simplified iconic NERV half fig-leaf */}
+              <path d="M50 10 C35 25, 20 45, 20 60 C20 75, 30 85, 45 90 C50 82, 50 68, 55 55 C52 45, 52 35, 50 10 Z" />
+              <path d="M55 40 C65 48, 75 60, 75 72 C75 80, 70 85, 62 88 C58 80, 56 68, 55 40 Z" />
+            </svg>
+          </div>
+        </div>
+
+        {/* ========================================== */}
+        {/* LAYER 5: Tactical Stencil "EVA UNIT"       */}
+        {/* ========================================== */}
+        <div
+          className="absolute inset-0 transition-transform duration-300 ease-out z-30 pointer-events-none"
+          style={{ transform: getTransform(0.5) }}
+        >
+          {/* EVA UNIT 00 Title Block */}
+          <div className="absolute left-6 top-[135px] md:top-[165px] flex flex-col items-start gap-1">
+            <div className="border border-white/20 bg-black/60 px-2.5 py-1 backdrop-blur-sm flex items-center justify-center rounded shadow-lg">
+              <span className="font-display font-black text-[22px] md:text-[26px] text-white tracking-widest text-glow-blue">
+                EVA UNIT
+              </span>
+            </div>
+            <div className="text-[9px] font-mono text-gray-400 bg-black/40 px-1 mt-0.5">
+              SERIAL_NO: US_{character.unit}_{character.name.split(' ')[0]}
+            </div>
+          </div>
+        </div>
+
+        {/* ========================================== */}
+        {/* INTERACTIVE HOTSPOTS & CLICK COGNITION      */}
+        {/* ========================================== */}
+        <div className="absolute inset-0 z-40 pointer-events-auto">
+          {ASSET_LIST.map((asset) => (
+            <button
+              key={asset.id}
+              onClick={() => onHotspotClick(asset.id)}
+              onMouseEnter={() => {
+                setHoveredAsset(asset.id);
+                playTacticalSound(900, 0.03);
+              }}
+              onMouseLeave={() => setHoveredAsset(null)}
+              className={`absolute flex items-center justify-center group focus:outline-none focus:ring-1 focus:ring-${themeColor === 'unit-00' ? 'red' : 'green'}-500 rounded-full transition-all`}
+              style={{
+                left: `${asset.coordinates.x}%`,
+                top: `${asset.coordinates.y}%`,
+                width: '32px',
+                height: '32px',
+                transform: 'translate(-50%, -50%)',
+              }}
+              title={`Highlight: ${asset.name}`}
+            >
+              {/* Outer pulsing ring */}
+              <div 
+                className={`absolute inset-0 rounded-full border-2 transition-all duration-300 ${
+                  hoveredAsset === asset.id || activeHotspot === asset.id
+                    ? `scale-125 opacity-100 ${themeColor === 'unit-00' ? 'border-[#e61a27]' : 'border-emerald-500'}`
+                    : `scale-100 opacity-60 border-[#00f0ff] animate-ping`
+                }`} 
+              />
+              {/* Inner core */}
+              <div 
+                className={`w-3.5 h-3.5 rounded-full transition-all duration-300 shadow-md ${
+                  hoveredAsset === asset.id || activeHotspot === asset.id
+                    ? `${themeColor === 'unit-00' ? 'bg-[#e61a27]' : 'bg-emerald-500'} scale-110`
+                    : `bg-[#00f0ff] scale-90`
+                }`}
+              />
+              
+              {/* Floating label on hover */}
+              <div className="absolute bottom-full mb-2 bg-black/90 text-white font-mono text-[9px] tracking-wide py-1 px-2.5 rounded border border-gray-700 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 shadow-2xl flex items-center gap-1.5">
+                <Info className={`w-3 h-3 ${activeTheme.neonText}`} />
+                {asset.name}
+              </div>
+            </button>
+          ))}
+        {/* ========================================== */}
+        {/* LAYER 6: HERO TEXT OVERLAY (Foreground 2) */}
+        {/* ========================================== */}
+        {fullScreen && (
+          <div
+            className="absolute inset-0 flex flex-col items-center justify-center transition-transform duration-300 ease-out z-35 pointer-events-none"
+            style={{ transform: getTransform(0.75) }}
+          >
+            <div className="text-center px-4 max-w-4xl">
+              <h1 className="font-display font-black text-5xl md:text-8xl text-white tracking-[0.15em] uppercase drop-shadow-[0_0_15px_rgba(230,26,39,0.7)] leading-none select-none">
+                ALIK MAKANMIE
+              </h1>
+              <div className="inline-block mt-4 bg-black/80 border border-[#00f0ff]/30 px-4 py-2 backdrop-blur-sm">
+                <p className="font-mono text-xs md:text-sm tracking-[0.3em] text-[#00f0ff] uppercase">
+                  SECURE PORTFOLIO NODE // FIRST CHILD
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        </div>
+
+        {/* Dynamic Interactive Crosshair following mouse */}
+        <div 
+          className="absolute w-10 h-10 border border-[#00f0ff]/30 rounded-full pointer-events-none z-50 transition-all duration-75 ease-out flex items-center justify-center opacity-0 group-hover:opacity-100 md:block hidden"
+          style={{
+            left: `${(mousePos.x + 0.5) * 100}%`,
+            top: `${(mousePos.y + 0.5) * 100}%`,
+            transform: 'translate(-50%, -50%)',
+          }}
+        >
+          <div className="w-1.5 h-1.5 bg-[#00f0ff] rounded-full" />
+        </div>
+
+        {/* Scroll Down Indicator */}
+        {fullScreen && (
+          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center gap-1.5 text-center pointer-events-none animate-bounce">
+            <span className="font-mono text-[9px] tracking-[0.2em] text-[#00f0ff] uppercase bg-black/60 px-2 py-0.5 border border-[#00f0ff]/10">
+              SCROLL DOWN FOR DATA
+            </span>
+            <div className="w-1.5 h-1.5 border-r border-b border-[#00f0ff] transform rotate-45"></div>
+          </div>
+        )}
+      </div>
+
+      {/* Interactive Selected Hotspot Drawer inside the visual panel */}
+      {activeHotspot && (
+        <div className="mt-3 p-3 bg-black/60 border border-[#e61a27]/30 rounded-md animate-fadeIn text-sm">
+          {(() => {
+            const asset = ASSET_LIST.find(a => a.id === activeHotspot);
+            if (!asset) return null;
+            return (
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#e61a27] animate-ping"></span>
+                    <span className="font-display font-bold text-white tracking-tight uppercase text-xs">
+                      Detil Elemen Poster: {asset.name}
+                    </span>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      playTacticalSound(440, 0.05);
+                      setActiveHotspot(null);
+                    }}
+                    className="text-gray-400 hover:text-white font-mono text-[10px] bg-gray-800 px-1.5 rounded"
+                  >
+                    TUTUP [ESC]
+                  </button>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-1.5">
+                  <div className="p-2 bg-black/40 rounded border border-gray-800">
+                    <span className="font-mono text-[10px] text-[#e61a27] block mb-1">■ DESKRIPSI ELEMEN:</span>
+                    <p className="text-gray-300 text-xs leading-relaxed">{asset.originalDescription}</p>
+                  </div>
+                  <div className="p-2 bg-black/40 rounded border border-gray-800">
+                    <span className="font-mono text-[10px] text-emerald-400 block mb-1">■ IMPLEMENTASI WEB PORTAL:</span>
+                    <p className="text-gray-300 text-xs leading-relaxed">{asset.webImplementation}</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      )}
+    </div>
+  );
+}

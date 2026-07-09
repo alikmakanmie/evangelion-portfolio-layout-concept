@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NERV TACTICAL HUD - EVA UNIT-00</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Use Inter for UI, Space Grotesk for Display, JetBrains Mono for Tactical -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;700;800&family=Space+Grotesk:wght@700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Ambient Background Gradients -->
+  <div class="ambient-glow ambient-glow-red"></div>
+  <div class="ambient-glow ambient-glow-teal"></div>
+
+  <!-- NERV Tactical Header -->
+  <header class="tactical-header">
+    <div class="header-left">
+      <div class="nerv-logo">
+        <span>NERV</span>
+        <div class="nerv-logo-inner"></div>
+      </div>
+      <div class="header-titles">
+        <div class="title-row">
+          <h1>NERV PORTAL CONCEPT ENGINE</h1>
+          <span class="badge badge-pulse">SECURE_NODE_00</span>
+        </div>
+        <p class="subtitle">TACTICAL PARALLAX SIMULATION (REI AYANAMI - FIRST CHILD)</p>
+      </div>
+    </div>
+    
+    <div class="header-right">
+      <div class="status-indicator">
+        <span class="icon teal">◷</span>
+        <span>TIME:</span>
+        <span id="clock" class="value">SYNCING...</span>
+      </div>
+      <div class="divider"></div>
+      <div class="status-indicator">
+        <span class="icon red">⌖</span>
+        <span>GEOLOCATION:</span>
+        <span class="value">TOKYO-3 (GEO-FRONT)</span>
+      </div>
+      <div class="divider"></div>
+      <div class="status-indicator green">
+        <span class="icon pulse">●</span>
+        <span>MAGI_STATUS: ONLINE</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Canvas Container -->
+  <main class="canvas-wrapper">
+    
+    <div class="interactive-poster" id="posterBox">
+      <!-- Layer 1: Technical Mesh & Grid -->
+      <div class="parallax-layer layer-1" data-speed="0.15">
+        <div class="technical-grid"></div>
+        <div class="target-reticle">
+          <div class="reticle-circle-inner"></div>
+          <div class="reticle-line-h"></div>
+          <div class="reticle-line-v"></div>
+        </div>
+      </div>
+
+      <!-- Layer 2: Big "00" & Kanji -->
+      <div class="parallax-layer layer-2" data-speed="0.3">
+        <div class="big-00">00</div>
+        
+        <div class="kanji-warning bottom-left">
+          <div class="kanji-box pulse">
+            <span class="icon">⚠</span> 警告_WARNING
+          </div>
+          <div class="kanji-subtext">SYSTEM CORRUPTION DETECTED</div>
+        </div>
+        
+        <div class="kanji-warning top-right">
+          <div class="kanji-box">警告_KEIKOKU</div>
+          <div class="kanji-subtext text-gray">XX_SECURE_NODE_XX</div>
+        </div>
+        
+        <div class="spam-ad">
+          <span class="ping-dot"></span> 垃圾广告_SPAM
+        </div>
+        
+        <div class="brush-kanji center-left">新龍</div>
+      </div>
+
+      <!-- Layer 3: Central Rei Portrait -->
+      <div class="parallax-layer layer-3" data-speed="0.6">
+        <div class="portrait-frame">
+          <div class="ambient-bg-glow"></div>
+          <img src="assets/images/rei_ayanami_central_1783557740359.jpg" alt="Rei Central" class="portrait-img" id="centralRei">
+          <div class="scanlines"></div>
+        </div>
+      </div>
+
+      <!-- Layer 4: Profile Rei Torn Paper & Right Side Info -->
+      <div class="parallax-layer layer-4" data-speed="0.4">
+        
+        <div class="profile-container">
+          <div class="torn-paper shadow-layer"></div>
+          <div class="torn-paper content-layer">
+            <img src="assets/images/rei_ayanami_profile_1783557756644.jpg" alt="Rei Profile" class="profile-img">
+            <div class="profile-gradient"></div>
+            <div class="telemetry-text">EVA_UNIT_00_SYNC: 62.4%</div>
+          </div>
+          <div class="torn-paper border-layer"></div>
+        </div>
+        
+        <div class="stencil-labels">
+          <div class="stencil-title">REI AYANAMI</div>
+          <div class="stencil-subtitle">綾波レイ_FIRST_CHILD</div>
+        </div>
+        
+        <div class="brush-kanji right-side">新龍</div>
+        
+        <div class="nerv-leaf-logo">
+          <svg viewBox="0 0 100 100">
+            <path d="M50 10 C35 25, 20 45, 20 60 C20 75, 30 85, 45 90 C50 82, 50 68, 55 55 C52 45, 52 35, 50 10 Z" />
+            <path d="M55 40 C65 48, 75 60, 75 72 C75 80, 70 85, 62 88 C58 80, 56 68, 55 40 Z" />
+          </svg>
+        </div>
+        
+      </div>
+
+      <!-- Layer 5: Tactical Stencil "EVA UNIT" -->
+      <div class="parallax-layer layer-5" data-speed="0.5">
+        <div class="eva-unit-block">
+          <div class="eva-unit-box">
+            <span class="eva-unit-text glow-blue">EVA UNIT</span>
+          </div>
+          <div class="eva-unit-subtext">SERIAL_NO: US_00_REI</div>
+        </div>
+      </div>
+
+      <!-- Custom Interactive Target Cursor -->
+      <div class="crosshair-cursor" id="customCursor">
+        <div class="crosshair-dot"></div>
+      </div>
+      
+    </div>
+  </main>
+
+  <!-- Footer Disclaimer -->
+  <footer class="tactical-footer">
+    © NERV PROJECT INSTRUMENTALIZATION OF WEB DESIGN. ALL RIGHTS RESERVED. SECURED BY MAGI-00.
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
