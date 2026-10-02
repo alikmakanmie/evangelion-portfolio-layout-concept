@@ -6,37 +6,109 @@
 <title>Portofolio Alik — Evangelion</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}body{background:#0a0a12;color:#e8e8f0;font-family:Arial,Helvetica,sans-serif;overflow-x:hidden}
-a{color:#a78bfa;text-decoration:none}nav{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;padding:18px 32px;background:rgba(10,10,18,.85);z-index:10;backdrop-filter:blur(8px)}
-nav b{color:#76ff7a;letter-spacing:2px}nav div a{margin-left:18px;font-size:14px}
-section{padding:110px 8vw;min-height:70vh}.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center}
-.hero h1{font-size:clamp(48px,9vw,110px);line-height:.95;text-transform:uppercase}.hero h1 span{color:#ff7a1a}.hero p{margin-top:20px;max-width:620px;font-size:18px;color:#b8b8cc;line-height:1.6}
-.btn{display:inline-block;margin-top:28px;background:#76ff7a;color:#0a0a12;padding:14px 26px;font-weight:bold;border-radius:4px}
-h2{font-size:clamp(32px,5vw,56px);margin-bottom:18px;color:#a78bfa}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;margin-top:24px}
-.card{background:#151528;border:1px solid #2a2a4a;padding:24px;border-radius:12px}.card h3{color:#ff7a1a;margin-bottom:10px}.card p{color:#c5c5d8;line-height:1.6}
-.skill{margin:14px 0}.bar{height:10px;background:#222238;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,#a78bfa,#76ff7a);width:0}
-footer{padding:32px 8vw;color:#8888aa;border-top:1px solid #222238}
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--purple:#7b2ff7;--green:#39ff6a;--dark:#0a0a12;--panel:#17172a}
+body{background:var(--dark);color:#eee;font-family:Arial,Helvetica,sans-serif;overflow-x:hidden}
+section{padding:90px 6vw}
+h1{font-size:clamp(42px,8vw,96px);line-height:.95}
+h2{font-size:clamp(28px,5vw,52px);margin-bottom:18px}
+.accent{color:var(--green)} .purple{color:var(--purple)}
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;gap:20px;background:radial-gradient(circle at 70% 20%,#3b1470 0,transparent 45%)}
+.btn{display:inline-block;background:var(--purple);color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;width:max-content}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid #2c2c4d;border-radius:14px;padding:20px}
 .reveal{opacity:0;transform:translateY(40px)}
+/* ===== EVA-01 3D exploded view ===== */
+#eva3d{height:240vh;padding:0;position:relative}
+.eva-sticky{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at center,#1d1038 0,#0a0a12 65%)}
+.scene{width:340px;height:540px;perspective:1100px;margin-top:10px}
+.eva3d{position:relative;width:100%;height:100%;transform-style:preserve-3d;will-change:transform}
+.part{position:absolute;left:50%;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:12px;text-align:center;color:#fff;border:2px solid rgba(57,255,106,.8);background:linear-gradient(145deg,#8a3ffc,#4b148f);box-shadow:0 18px 40px rgba(0,0,0,.55);transform-style:preserve-3d;will-change:transform;padding:6px}
+.part.green{background:linear-gradient(145deg,#39ff6a,#0f9b3c);color:#06130a;border-color:#b6ffd0}
+.part.dark{background:linear-gradient(145deg,#2a2a40,#12121f)}
+.p-head{width:84px;height:96px;margin-left:-42px;top:8px;z-index:5}
+.p-horn{width:14px;height:74px;margin-left:-7px;top:-52px;background:var(--green);border-radius:8px}
+.p-chest{width:170px;height:130px;margin-left:-85px;top:118px}
+.p-core{width:56px;height:56px;margin-left:-28px;top:152px;border-radius:50%;background:radial-gradient(circle,#fff,#39ff6a 35%,#087f2c)}
+.p-shL{width:82px;height:64px;margin-left:-168px;top:112px}.p-shR{width:82px;height:64px;margin-left:86px;top:112px}
+.p-armL{width:52px;height:150px;margin-left:-158px;top:182px}.p-armR{width:52px;height:150px;margin-left:106px;top:182px}
+.p-waist{width:130px;height:52px;margin-left:-65px;top:258px}
+.p-legL{width:58px;height:190px;margin-left:-72px;top:318px}.p-legR{width:58px;height:190px;margin-left:14px;top:318px}
+.label{position:absolute;font-size:12px;color:var(--green);opacity:0;white-space:nowrap}
+.progress{width:min(520px,80vw);height:8px;background:#262640;border-radius:99px;overflow:hidden;margin-top:18px}
+.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--purple),var(--green))}
+.hint{opacity:.75;margin-top:10px;font-size:14px;text-align:center}
+@media(max-width:600px){.scene{transform:scale(.78)}}
 </style>
 </head>
 <body>
-<nav><b>ALIK // EVA-01</b><div><a href="#tentang">Tentang</a><a href="#proyek">Proyek</a><a href="#skill">Skill</a><a href="#kontak">Kontak</a></div></nav>
-<section class="hero"><p style="color:#76ff7a;letter-spacing:3px">SYNCH RATE: 100% — PORTFOLIO</p><h1>ALIK<br><span>BUILDER</span><br>DIGITAL</h1><p>Membangun pengalaman web yang berani, cepat, dan imersif — terinspirasi estetika Evangelion: gelap, neon, dan penuh energi.</p><a class="btn" href="#proyek">Lihat Proyek</a></section>
-<section id="tentang" class="reveal"><h2>Tentang</h2><p style="max-width:700px;line-height:1.7;color:#c5c5d8">Halo, saya Alik — developer & builder yang fokus pada web modern, otomasi AI, dan infrastruktur personal. Saya suka mengubah ide menjadi produk yang bisa langsung dipakai.</p></section>
-<section id="proyek" class="reveal"><h2>Proyek</h2><div class="grid"><article class="card"><h3>Evangelion Portfolio</h3><p>Web portofolio satu file dengan animasi Anime.js: scroll-reveal, transisi section, dan hover galeri.</p></article><article class="card"><h3>AI Team AgentX</h3><p>Tim karyawan AI multi-agen via Telegram untuk desain, frontend, backend, DevOps, dan QA.</p></article><article class="card"><h3>9Router + Dhodi Bridge</h3><p>Infrastruktur provider AI personal dengan tunnel publik dan worker lokal.</p></article></div></section>
-<section id="skill" class="reveal"><h2>Skill</h2><div class="skill">HTML / CSS / JavaScript<div class="bar"><i data-w="92%"></i></div></div><div class="skill">Node.js &amp; Anime.js<div class="bar"><i data-w="88%"></i></div></div><div class="skill">UI / Frontend Modern<div class="bar"><i data-w="85%"></i></div></div></section>
-<section id="kontak" class="reveal"><h2>Kontak</h2><p style="color:#c5c5d8;line-height:1.7">Punya proyek atau ide? Hubungi saya lewat grup Office Dhodi atau Telegram — siap gas eksekusi.</p><a class="btn" href="#tentang">Hubungi Saya</a></section>
-<footer>© 2026 Alik — Portofolio Evangelion • Dibangun dengan Node.js tooling &amp; Anime.js</footer>
+<header class="hero">
+<p class="accent">NEON GENESIS • PORTFOLIO</p>
+<h1>Portofolio <span class="purple">Alik</span><br>Evangelion</h1>
+<p>Frontend developer — membangun web cepat, responsif, dan hidup dengan Node.js + Anime.js.</p>
+<a class="btn" href="#eva3d">Lihat EVA-01 3D ↓</a>
+</header>
+
+<section><h2 class="reveal">Tentang</h2><p class="reveal">Saya Alik, pengembang web yang fokus pada antarmuka modern, animasi halus, dan pengalaman pengguna di semua ukuran layar.</p></section>
+
+<!-- Scroll = bongkar lalu pasang lagi. Sticky section 240vh memberi ruang scrub animasi. -->
+<section id="eva3d"><div class="eva-sticky">
+<h2>EVA-01 <span class="accent">3D Exploded View</span></h2>
+<p class="hint">Scroll perlahan: komponen EVA-01 dibongkar ke luar (translateZ / rotate 3D), lalu dipasang kembali.</p>
+<div class="scene"><div class="eva3d" id="eva">
+<div class="part p-horn" data-dx="0" data-dy="-90" data-dz="120" data-ry="40"></div>
+<div class="part p-head" data-dx="0" data-dy="-70" data-dz="90" data-ry="-30">HEAD<br>Shinji Ikari</div>
+<div class="part p-shL green" data-dx="-130" data-dy="-40" data-dz="70" data-ry="-50">SHOULDER L</div>
+<div class="part p-shR green" data-dx="130" data-dy="-40" data-dz="70" data-ry="50">SHOULDER R</div>
+<div class="part p-chest" data-dx="0" data-dy="0" data-dz="130" data-ry="0">CHEST<br>Test Type</div>
+<div class="part p-core" data-dx="0" data-dy="0" data-dz="220" data-ry="90">CORE</div>
+<div class="part p-armL" data-dx="-170" data-dy="30" data-dz="40" data-ry="-60">ARM L<br>A.T. Field</div>
+<div class="part p-armR" data-dx="170" data-dy="30" data-dz="40" data-ry="60">ARM R<br>A.T. Field</div>
+<div class="part p-waist dark" data-dx="0" data-dy="60" data-dz="70" data-ry="25">WAIST<br>Berserk Mode</div>
+<div class="part p-legL" data-dx="-80" data-dy="110" data-dz="50" data-ry="-35">LEG L</div>
+<div class="part p-legR" data-dx="80" data-dy="110" data-dz="50" data-ry="35">LEG R</div>
+</div></div>
+<div class="progress"><i id="bar"></i></div>
+<p class="hint" id="phase">Fase: terpasang</p>
+</div></section>
+
+<section><h2 class="reveal">Proyek</h2><div class="grid">
+<div class="card reveal"><h3>Evangelion Portfolio</h3><p>Site portofolio satu file dengan Anime.js dan model 3D scroll-driven.</p></div>
+<div class="card reveal"><h3>Web Bisnis</h3><p>Landing page responsif dan cepat untuk usaha lokal.</p></div>
+<div class="card reveal"><h3>Dashboard</h3><p>Antarmuka data yang rapi dan mudah dipakai.</p></div></div></section>
+
+<section><h2 class="reveal">Skill</h2><div class="grid">
+<div class="card reveal">HTML &amp; CSS 3D</div><div class="card reveal">JavaScript</div>
+<div class="card reveal">Node.js</div><div class="card reveal">Anime.js</div></div></section>
+
+<section><h2 class="reveal">Kontak</h2><p class="reveal">Tertarik bekerja sama? Hubungi Alik lewat grup ini untuk proyek web berikutnya.</p></section>
+
 <script>
-anime({targets:'.hero h1',translateY:[60,0],opacity:[0,1],duration:1200,easing:'easeOutExpo'});
-anime({targets:'.hero p,.hero .btn',translateY:[24,0],opacity:[0,1],delay:anime.stagger(150,{start:300}),duration:900,easing:'easeOutQuad'});
-const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){anime({targets:e.target,opacity:[0,1],translateY:[40,0],duration:900,easing:'easeOutExpo'});e.target.querySelectorAll('.bar i').forEach(b=>anime({targets:b,width:[0,b.dataset.w],duration:1200,easing:'easeInOutQuad'}));io.unobserve(e.target)}})},{threshold:.2});
-document.querySelectorAll('.reveal').forEach(s=>io.observe(s));
-document.querySelectorAll('.card').forEach(c=>{c.addEventListener('mouseenter',()=>anime({targets:c,scale:1.04,duration:300}));c.addEventListener('mouseleave',()=>anime({targets:c,scale:1,duration:300}))});
+// Hero entrance
+anime.timeline({easing:'easeOutExpo'})
+ .add({targets:'.hero p,h1,.hero .btn',translateY:[30,0],opacity:[0,1],delay:anime.stagger(120),duration:900});
+// Scroll-reveal section lain
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){anime({targets:e.target,opacity:1,translateY:0,duration:800,easing:'easeOutQuad'});io.unobserve(e.target)}}),{threshold:.15});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+// Idle float supaya model terasa hidup
+anime({targets:'#eva',translateY:[-6,6],duration:2200,easing:'easeInOutSine',direction:'alternate',loop:true});
+// === INTI: scroll-driven bongkar -> pasang (scrub, bukan autoplay) ===
+const sec=document.getElementById('eva3d'),parts=document.querySelectorAll('.part'),
+      bar=document.getElementById('bar'),phase=document.getElementById('phase'),model=document.getElementById('eva');
+function onScroll(){
+ const r=sec.getBoundingClientRect(),total=sec.offsetHeight-innerHeight;
+ const p=Math.min(1,Math.max(0,-r.top/Math.max(1,total))); // 0..1 selama section sticky
+ // Bongkar pada paruh pertama, pasang kembali pada paruh kedua
+ const f=p<0.5 ? p*2 : (1-p)*2;
+ bar.style.width=(p*100)+'%';
+ phase.textContent='Fase: '+(f<0.05?'terpasang':(p<0.5?'dibongkar…':'dipasang kembali…'));
+ parts.forEach(el=>{
+   const d=el.dataset;
+   anime.set(el,{translateX:(+d.dx)*f,translateY:(+d.dy)*f,translateZ:(+d.dz)*f,rotateY:(+d.ry)*f,opacity:1-0.15*f});
+ });
+ anime.set(model,{rotateY:-22+44*p,rotateX:6-8*p});
+}
+addEventListener('scroll',onScroll,{passive:true}); onScroll();
 </script>
-<section id="eva-01" class="eva-01-item" style="margin:48px auto;max-width:900px;padding:28px;border:2px solid #7c3aed;border-radius:16px;background:linear-gradient(135deg,#1a0533,#052e16);color:#fff;font-family:system-ui,sans-serif">
-<h2 style="color:#a3e635;margin:0 0 8px">EVA-01 — Unit-01</h2>
-<p style="margin:0 0 12px">Item baru: Evangelion Unit-01, unit ikonik berwarna ungu-hijau dengan core bercahaya. Pilot: Shinji Ikari &middot; Status: ACTIVE &middot; Mode: Berserk-ready.</p>
-<p style="margin:0;opacity:.85">Ditambahkan sebagai kartu unit khusus di portofolio ini, responsif untuk mobile &amp; desktop dan siap dianimasikan dengan Anime.js (fade-in + stagger saat scroll).</p>
-</section></body>
+</body>
 </html>
