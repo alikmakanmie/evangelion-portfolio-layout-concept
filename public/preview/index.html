@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Portofolio Alik — Evangelion</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+<script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 <style>
 :root{--bg:#0a0a12;--panel:#14141f;--ungu:#7c3aed;--ungu2:#a855f7;--hijau:#00e65a;--hijau2:#22ff88;--teks:#f1f1f6;--redup:#a7a7b8;--oranye:#ff7a1a}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -27,7 +28,9 @@ h2{font-size:2rem;margin-bottom:8px}h2 span{color:var(--hijau)}
 .card.hijau{border-top-color:var(--hijau)}
 .card h3{margin-bottom:8px}.card p{color:var(--redup);font-size:.95rem}
 .eva{background:linear-gradient(135deg,rgba(124,58,237,.22),rgba(0,230,90,.12));border:2px solid var(--ungu);border-radius:16px;padding:30px}
-.eva ul{list-style:none;margin-top:14px}.eva li{padding:9px 0;border-bottom:1px dashed #3a3a52}.eva li b{color:var(--hijau2)}
+.eva ul{list-style:none;margin-top:14px}
+model-viewer.eva3d{width:100%;height:480px;margin-top:22px;background:radial-gradient(circle at 50% 30%,rgba(124,58,237,.35),rgba(10,10,18,.9));border:2px solid var(--hijau);border-radius:14px;--poster-color:transparent}
+.eva3d-note{color:var(--redup);font-size:.9rem;margin-top:10px;text-align:center}.eva li{padding:9px 0;border-bottom:1px dashed #3a3a52}.eva li b{color:var(--hijau2)}
 .skill{margin-bottom:16px}.skill label{display:flex;justify-content:space-between}
 .bar{height:10px;background:#26263a;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--ungu2),var(--hijau))}
 footer{text-align:center;padding:34px 6vw;color:var(--redup);border-top:1px solid #26263a}
@@ -57,7 +60,9 @@ footer{text-align:center;padding:34px 6vw;color:var(--redup);border-top:1px soli
 <li><b>Tipe:</b> Test Type</li>
 <li><b>Pertahanan:</b> A.T. Field</li>
 <li><b>Mode Khusus:</b> Berserk</li>
-</ul></div></section>
+</ul>
+<model-viewer class="eva3d" src="assets/eva-01.glb" alt="Model 3D EVA-01 karya Nadia" camera-controls auto-rotate auto-rotate-delay="1200" rotation-per-second="24deg" min-camera-orbit="auto auto 3m" max-camera-orbit="auto auto 14m" shadow-intensity="1" exposure="1.1"></model-viewer>
+<p class="eva3d-note">Model 3D EVA-01 — seret untuk memutar, cubit / scroll untuk zoom.</p></div></section>
 
 <section id="proyek" class="reveal"><h2>Proyek <span>Pilihan</span></h2><p class="sub">Karya pilihan dengan standar siap deploy.</p>
 <div class="grid">
